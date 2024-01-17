@@ -1,4 +1,3 @@
-import hashlib
 import qrcode
 from PIL import Image
 from Crypto.Cipher import AES
@@ -28,11 +27,21 @@ def encode_QR(img, owner_name, creation_year, email, social_media_url, encryptio
     qr.add_data(qr_data)
     qr.make(fit=True)
 
+<<<<<<< HEAD
     qr_img = qr.make_image(fill_color="black", back_color="white").resize((qr_size, qr_size), Image.ANTIALIAS)
     img.paste(
         qr_img, (img.width - qr_img.size[0], img.height - qr_img.size[1]))
     return img
     
+=======
+def text_to_binary(text):
+    binary_result = ''
+    for char in text:
+        binary_result += format(ord(char), '08b')
+    return binary_result
+
+
+>>>>>>> 65e5664e2de99e738c67f0ca9f281d4ccb6993aa
 def encode_lsb(img, owner_name, creation_year, email, social_media_url, encryption_key):
     # Enkripsi owner_name, creation_year, email, dan social_media_url
     encrypted_owner_name = encrypt_data(owner_name, encryption_key)
