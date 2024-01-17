@@ -16,20 +16,23 @@ def encrypt_data(data, key):
     ciphertext = cipher.encrypt(pad(data.encode(), AES.block_size))
     return ciphertext
 
+def encode_QR(img, owner_name, creation_year, email, social_media_url, encryption_key):
+    qr_size = int(min(img.size) * 0.3)
+    qr_data = f"Name: {owner_name}\nYear: {creation_year}\nEmail: {email}\nSocial Media: {social_media_url}"
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=5,  # Atur ukuran QR Code
+        border=1,
+    )
+    qr.add_data(qr_data)
+    qr.make(fit=True)
 
-def text_to_binary(text):
-    binary_result = ''
-    for char in text:
-        binary_result += format(ord(char), '08b')
-    return binary_result
-
-
-def generate_hash(data):
-    sha256 = hashlib.sha256()
-    sha256.update(data)
-    return sha256.hexdigest()
-
-
+    qr_img = qr.make_image(fill_color="black", back_color="white").resize((qr_size, qr_size), Image.ANTIALIAS)
+    img.paste(
+        qr_img, (img.width - qr_img.size[0], img.height - qr_img.size[1]))
+    return img
+    
 def encode_lsb(img, owner_name, creation_year, email, social_media_url, encryption_key):
     # Enkripsi owner_name, creation_year, email, dan social_media_url
     encrypted_owner_name = encrypt_data(owner_name, encryption_key)
@@ -66,23 +69,7 @@ def encode_lsb(img, owner_name, creation_year, email, social_media_url, encrypti
     encoded_img = Image.new('RGB', img.size)
     encoded_img.putdata(img_data)
 
-    # Menambahkan QR Code di pojok kanan bawah dengan ukuran kecil
-    qr_data = f"Name: {owner_name}\nYear: {creation_year}\nEmail: {email}\nSocial Media: {social_media_url}"
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=5,  # Atur ukuran QR Code
-        border=1,
-    )
-    qr.add_data(qr_data)
-    qr.make(fit=True)
-
-    qr_img = qr.make_image(fill_color="black", back_color="white")
-    encoded_img.paste(
-        qr_img, (img.width - qr_img.size[0], img.height - qr_img.size[1]))
-
     return encoded_img
-
 
 @app.route('/encode', methods=['POST'])
 def encode_image():
@@ -99,17 +86,23 @@ def encode_image():
         # Encode the image
         encoded_img = encode_lsb(
             img, owner_name, creation_year, email, social_media_url, encryption_key)
+        qr_img = encode_QR(
+            img, owner_name, creation_year, email, social_media_url, encryption_key
+        )
+
 
         # Convert encryption_key to hexadecimal string
         encryption_key_hex = encryption_key.hex()
 
         # Save the encoded image if needed
         encoded_img.save(f"./imgEncode/encoded_{image_file.filename}")
+        qr_img.save(f"./imgEncode/qr_{image_file.filename}")
 
         return jsonify({
             "status": "success",
             "message": "Image successfully steganographically encoded.",
             "path": f"./imgEncode/encoded_{image_file.filename}",
+            "path2": f"./imgEncode/qr_{image_file.filename}",
             "encryption_key w/ HEX": encryption_key_hex
         })
     except Exception as e:

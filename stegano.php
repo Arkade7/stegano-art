@@ -80,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Insert data into the table
         $insertQuery = "INSERT INTO $tableName (pathImg, key_enkripsi) VALUES ('{$responseData['path']}', '{$responseData['encryption_key w/ HEX']}')";
         $conn->query($insertQuery);
+        $insertQuery2 = "INSERT INTO $tableName (pathImg, key_enkripsi) VALUES ('{$responseData['path2']}', '{$responseData['-']}')";
+        $conn->query($insertQuery2);
 
         // Close the database connection
         $conn->close();
